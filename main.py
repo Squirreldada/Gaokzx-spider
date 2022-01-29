@@ -1,8 +1,10 @@
 import requests
+import os
 from bs4 import BeautifulSoup
 
+ilink = input("请输入目标链接(试卷汇总页面)：")
 headers = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:96.0) Gecko/20100101 Firefox/96.0"}
-r = requests.get('https://www.gaokzx.com/c/202112/57428.html', headers = headers)
+r = requests.get(ilink, headers = headers)
 soup = BeautifulSoup(r.text.encode(r.encoding),'lxml')
 list = soup.find('table').find_all('tr')
 links = []
@@ -37,6 +39,10 @@ for item in links_final:
 
 print("当前共有", len(links_final), "个链接")
 
+# 新建文件夹
+if not os.path.exists("./exams/"):
+    os.mkdir("./exams/")
+
 # 开始下载
 for item in links_final:
     # 遍历页面
@@ -50,6 +56,6 @@ for item in links_final:
         for link in dlink:
             if link.u.text:
                 print("\t\t正在下载", link.u.text + ".pdf")
-                open(link.u.text + ".pdf", 'wb').write(requests.get("https://www.gaokzx.com"+link.get('href')).content)
+                open("./exams/" + link.u.text + ".pdf", 'wb').write(requests.get("https://www.gaokzx.com"+link.get('href')).content)
     else:
         print("\t获取到0个文件")
