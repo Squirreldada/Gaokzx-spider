@@ -46,7 +46,7 @@ if not os.path.exists("./exams/"):
 # 开始下载
 for item in links_final:
     # 遍历页面
-    print("正在检索第",links_final.index(item), "个链接")
+    print("正在检索第",links_final.index(item) + 1, "个链接")
     r = requests.get(item, headers = headers)
     soup = BeautifulSoup(r.text.encode(r.encoding),'lxml')
     # 寻找下载链接
