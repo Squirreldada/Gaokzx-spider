@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 
 headers = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:96.0) Gecko/20100101 Firefox/96.0"}
 r = requests.get('https://www.gaokzx.com/c/202112/57428.html', headers = headers)
-soup = BeautifulSoup(r.text.encode("ISO-8859-1"),'lxml')
+soup = BeautifulSoup(r.text.encode(r.encoding),'lxml')
 list = soup.find('table').find_all('tr')
 links = []
 links_final = []
@@ -32,8 +32,24 @@ for item in links:
         links_final.append(item)
 
 # 格式化链接
-for item in links:
-    links[links.index(item)] = item.replace('/c/','https://www.gaokzx.com/c/')
+for item in links_final:
+    links_final[links_final.index(item)] = item.replace('/c/','https://www.gaokzx.com/c/')
 
 print("当前共有", len(links_final), "个链接")
-# print(links)
+
+# 开始下载
+for item in links_final:
+    # 遍历页面
+    print("正在检索第",links_final.index(item), "个链接")
+    r = requests.get(item, headers = headers)
+    soup = BeautifulSoup(r.text.encode(r.encoding),'lxml')
+    # 寻找下载链接
+    dlink = soup.find_all(class_='download')
+    if dlink:
+        print("\t获取到", len(dlink), "个文件，正在下载")
+        for link in dlink:
+            if link.u.text:
+                print("\t\t正在下载", link.u.text + ".pdf")
+                open(link.u.text + ".pdf", 'wb').write(requests.get("https://www.gaokzx.com"+link.get('href')).content)
+    else:
+        print("\t获取到0个文件")
