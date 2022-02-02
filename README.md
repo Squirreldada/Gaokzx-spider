@@ -1,6 +1,6 @@
 # Gaokzx-spider
 
-Python Spider of gaokzx.com
+Python Spider for gaokzx.com
 
 ---
 
