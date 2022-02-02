@@ -9,6 +9,9 @@ soup = BeautifulSoup(r.text.encode(r.encoding),'lxml')
 list = soup.find('table').find_all('tr')
 links = []
 links_final = []
+file = 0
+error = 0
+success = 0
 
 print("当前页面标题为：", soup.title.string)
 print("当前页面编码为：", r.encoding)
@@ -52,10 +55,24 @@ for item in links_final:
     # 寻找下载链接
     dlink = soup.find_all(class_='download')
     if dlink:
+        file += len(dlink)
         print("\t获取到", len(dlink), "个文件，正在下载")
         for link in dlink:
-            if link.u.text:
+            if link.find_all('u'):
                 print("\t\t正在下载", link.u.text + ".pdf")
                 open("./exams/" + link.u.text + ".pdf", 'wb').write(requests.get("https://www.gaokzx.com"+link.get('href')).content)
+                success += 1
+            else:
+                print("[错误]无法获取目标文件名")
+                print("页面链接：", item)
+                print("文件链接：", "https://www.gaokzx.com"+link.get('href'))
+                error += 1
     else:
         print("\t获取到0个文件")
+        
+# 数据汇总
+print("执行完毕")
+print("总共获取到", file, "个文件")
+print("成功下载了", success, "个文件")
+print("总共出现了", error, "个错误")
+print("详情请检查输出")
