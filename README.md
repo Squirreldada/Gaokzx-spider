@@ -1,18 +1,20 @@
 # Gaokzx-spider
 
-Python Spider for gaokzx.com
+从 gaokzx.com 批量下载试卷
 
 ---
 
-## Usage
+## 使用方式
 
-Just run main.py and enter the link.
+在 gaokzx.com 找到试卷合集页面，复制链接
+
+运行 main.py ，然后按照提示输入链接
 
 ```shell
 python main.py
 ```
 
-For example:
+例如:
 
 ```shell
 python main.py
