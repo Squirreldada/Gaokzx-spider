@@ -3,10 +3,14 @@ import os
 from bs4 import BeautifulSoup
 
 ilink = input("请输入目标链接(试卷汇总页面)：")
+year_filter = input("请输入需要筛选的试卷年份（不需要筛选请按回车）：")
+subject_filter = input("请输入需要筛选的学科（语文、数学、英语、物理、化学、生物），多个学科以逗号隔开（不需要筛选请按回车）：")
+region_filter = input("请输入需要筛选的地区（海淀、西城等），多个地区以逗号隔开（不需要筛选请按回车）：")
+
 headers = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:96.0) Gecko/20100101 Firefox/96.0"}
-r = requests.get(ilink, headers = headers)
-soup = BeautifulSoup(r.text.encode(r.encoding),'lxml')
-list = soup.find('table').find_all('tr')
+r = requests.get(ilink, headers=headers)
+soup = BeautifulSoup(r.text.encode(r.encoding), 'lxml')
+tr_list = soup.find('table').find_all('tr')
 links = []
 links_final = []
 file = 0
@@ -17,59 +21,47 @@ print("当前页面标题为：", soup.title.string)
 print("当前页面编码为：", r.encoding)
 
 # 提取链接
-for item in list:
-    a = item.find_all('a')
-    for ta in a:
-        href = ta.get('href')
+for tr in tr_list:
+    a_list = tr.find_all('a')
+    for a in a_list:
+        href = a.get('href')
         links.append(href)
 
 # 格式化链接
-for item in links:
-    links[links.index(item)] = item.replace('https://www.gaokzx.com','')
+for i in range(len(links)):
+    links[i] = links[i].replace('https://www.gaokzx.com', '')
 
 # 删除重复项
-for item in links:
-    hasItem = False
-    for item2 in links_final:
-        if item2 == item:
-            hasItem = True
-    if(hasItem == False):
-        links_final.append(item)
+links_final = list(set(links))
 
 # 格式化链接
-for item in links_final:
-    links_final[links_final.index(item)] = item.replace('/c/','https://www.gaokzx.com/c/')
-
-print("当前共有", len(links_final), "个链接")
-
-# 新建文件夹
-if not os.path.exists("./exams/"):
-    os.mkdir("./exams/")
+for i in range(len(links_final)):
+    links_final[i] = links_final[i].replace('/c/', 'https://www.gaokzx.com/c/')
 
 # 开始下载
 for item in links_final:
     # 遍历页面
-    print("正在检索第",links_final.index(item) + 1, "个链接")
-    r = requests.get(item, headers = headers)
-    soup = BeautifulSoup(r.text.encode(r.encoding),'lxml')
+    print("正在检索第", links_final.index(item) + 1, "个链接")
+    r = requests.get(item, headers=headers)
+    soup = BeautifulSoup(r.text.encode(r.encoding), 'lxml')
     # 寻找下载链接
     dlink = soup.find_all(class_='download')
     if dlink:
-        file += len(dlink)
-        print("\t获取到", len(dlink), "个文件，正在下载")
         for link in dlink:
-            if link.find_all('u'):
-                print("\t\t正在下载", link.u.text + ".pdf")
-                open("./exams/" + link.u.text + ".pdf", 'wb').write(requests.get("https://www.gaokzx.com"+link.get('href')).content)
+            # 获取文件名
+            filename = link.u.text + ".pdf"
+            # 判断年份、学科和地区是否符合筛选条件
+            if year_filter in filename and (subject_filter == '' or any(subject in filename for subject in subject_filter.split(','))) and (region_filter == '' or any(region in filename for region in region_filter.split(','))):
+                print("\t正在下载", filename)
+                open("./exams/" + filename, 'wb').write(requests.get("https://www.gaokzx.com" + link.get('href')).content)
                 success += 1
+                file += 1
             else:
-                print("[错误]无法获取目标文件名")
-                print("页面链接：", item)
-                print("文件链接：", "https://www.gaokzx.com"+link.get('href'))
-                error += 1
+                print("\t跳过文件", filename)
+                file += 1
     else:
         print("\t获取到0个文件")
-        
+
 # 数据汇总
 print("执行完毕")
 print("总共获取到", file, "个文件")
